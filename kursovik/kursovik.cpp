@@ -61,14 +61,15 @@ void working_function(vector<string>& vector) {
 	std::string prev_path;
 
 	int arrow = 0;
-	int ch = 0;
-	try{
+	int highlighted = 0;
+	int input = 0;
+	try {
 		while (true) {
 			path paths(my_path);
 			string chosen_file;
-			if (exists(paths)){
+			if (exists(paths)) {
 				//если файл, то предлагает его исполнить с дефолтной программой
-				if (is_regular_file(paths)) { 
+				if (is_regular_file(paths)) {
 					cout << paths << " size is " << file_size(paths) << '\n';
 					cout << "Do you want to open it? Y/N" << '\n';
 					char ans;
@@ -87,25 +88,35 @@ void working_function(vector<string>& vector) {
 				{
 					cout << paths << " is a directory containing:\n";
 
-					std::vector<path> all_paths;
+					std::vector<path> shown_paths, all_paths;
+					//shown_paths.push_back("..");
 					all_paths.push_back("..");
 
 					GetConsoleScreenBufferInfo(h, &csbi);                        //обновление буфера, чтобы помещалось в консоль
-					size_t rows = csbi.srWindow.Bottom - csbi.srWindow.Top + 1; 
+					size_t rows = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
 					int line_in_console = 0;
-					
-					for (auto&& element : directory_iterator(paths)) {             //заполнение вектора путями
-						if (line_in_console < rows - 3)
-							all_paths.push_back(element.path());
-						line_in_console++;
+					int first_shown = 0;
+
+					for (auto&& element : directory_iterator(paths)) {
+						all_paths.push_back(element.path());
 					}
 					std::sort(all_paths.begin(), all_paths.end());
 
-					for (auto&& element : all_paths) {
+					for (auto&& element : all_paths) {             //заполнение вектора путями
+						if (line_in_console < rows - 3 && first_shown <= highlighted)
+							shown_paths.push_back(element);
+						line_in_console++;
+					}
+					std::sort(shown_paths.begin(), shown_paths.end());
 
-						arrow = ((arrow + all_paths.size()) % all_paths.size());
+					first_shown = all_paths.size() - shown_paths.size() + highlighted;
 
-						if (arrow == (&element - &all_paths[0])) {
+					for (auto&& element : shown_paths) {
+
+						arrow = ((arrow + shown_paths.size()) % shown_paths.size());
+						highlighted = ((highlighted + all_paths.size()) % all_paths.size());
+
+						if (arrow == (&element - &shown_paths[0])) {
 							SetConsoleTextAttribute(h, (FOREGROUND_BLUE << 4));		//"стрелочка"
 							cout << "    " << element.filename() << '\n';
 							chosen_file = element.filename().string();
@@ -113,7 +124,7 @@ void working_function(vector<string>& vector) {
 						}
 						else
 							cout << "    " << element.filename() << '\n';                 //вывод всех остальных, кроме стрелочки
-						if (ch == 13) {
+						if (input == 13) {
 							if (arrow == 0) {
 								if (my_path == "C:/")
 									continue;										//если выбран .. (предыдущая директория) открывает ее, 
@@ -124,8 +135,8 @@ void working_function(vector<string>& vector) {
 								break;
 							}
 							else {
-								my_path += all_paths[arrow].filename().string();            //иначе открывает директорию/файл
-								if (is_directory(all_paths[arrow]))
+								my_path += shown_paths[arrow].filename().string();            //иначе открывает директорию/файл
+								if (is_directory(shown_paths[arrow]))
 									my_path += "/";
 								arrow = 0;
 								break;
@@ -155,20 +166,23 @@ void working_function(vector<string>& vector) {
 				if (a == 'Y' || a == 'y')
 					my_path = "C:/";
 			}
-			if (ch == 13) {
-				ch++;
-				std::system("cls");														//если был нажат ввод, собственно исполняет
+			if (input == 13) {
+				input++;
+				std::system("cls");										//если был нажат ввод, собственно исполняет
+				highlighted = 0;
 				continue;
 			}
-			ch = _getch();                                    //input handling
-			if (ch == 224)
-				ch = _getch();
-			switch (ch){
+			input = _getch();                                    //input handling
+			if (input == 224)
+				input = _getch();
+			switch (input) {
 			case 72:
 				arrow--;
+				highlighted--;
 				break;
 			case 80:
 				arrow++;
+				highlighted++;
 				break;
 			case '1':
 				create_file(my_path);
@@ -189,12 +203,12 @@ void working_function(vector<string>& vector) {
 				rm_this(my_path, chosen_file);
 				break;
 			}
-				
+
 			std::system("cls");
 		}
 	}
 
-	catch (const filesystem_error& ex){
+	catch (const filesystem_error& ex) {
 		cout << ex.what() << '\n';								//дефолтная штука буста
 	}
 
@@ -246,7 +260,7 @@ void rm_dir(string& my_path) {
 		path p(res_name);
 		remove(p);
 	}
-	catch (const filesystem_error& ex){
+	catch (const filesystem_error& ex) {
 		std::system("cls");
 		cout << "You can only delete empty folders" << '\n';
 		_getch();
@@ -269,12 +283,12 @@ void my_rename(string& my_path) {
 }
 
 void rm_this(string& my_path, string& chosen_path) {
-	try{
+	try {
 		string temp = my_path + chosen_path;
 		remove(path(temp));
 		return;
 	}
-	catch (const filesystem_error& ex){
+	catch (const filesystem_error& ex) {
 		std::system("cls");
 		cout << "You can only delete empty folders" << '\n';
 		_getch();
