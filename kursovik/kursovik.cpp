@@ -47,7 +47,7 @@ void working_function(vector<string>& vector) {
 
 	setlocale(0, "");
 
-	std::string my_path = "F:/";
+	std::string my_path = "C:/";
 
 	//std::cin >> my_path;
 	HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -115,7 +115,7 @@ void working_function(vector<string>& vector) {
 							cout << "    " << element.filename() << '\n';                 //вывод всех остальных, кроме стрелочки
 						if (ch == 13) {
 							if (arrow == 0) {
-								if (my_path == "F:/")
+								if (my_path == "C:/")
 									continue;										//если выбран .. (предыдущая директория) открывает ее, 
 								int start = my_path.find_last_of('/');				//удаляя последний путь
 								if (!my_path[start + 1]) my_path.replace(start, 1, "");
@@ -153,7 +153,7 @@ void working_function(vector<string>& vector) {
 				char a;
 				cin >> a;
 				if (a == 'Y' || a == 'y')
-					my_path = "F:/";
+					my_path = "C:/";
 			}
 			if (ch == 13) {
 				ch++;
@@ -230,6 +230,7 @@ void rm_file(string& my_path) {
 		remove(p);
 	}
 	catch (const filesystem_error& ex) {
+		std::system("cls");
 		cout << "This function is for deleting files but well done you tried to break even it!" << '\n';
 		_getch();
 	}
@@ -246,6 +247,7 @@ void rm_dir(string& my_path) {
 		remove(p);
 	}
 	catch (const filesystem_error& ex){
+		std::system("cls");
 		cout << "You can only delete empty folders" << '\n';
 		_getch();
 	}
@@ -270,8 +272,10 @@ void rm_this(string& my_path, string& chosen_path) {
 	try{
 		string temp = my_path + chosen_path;
 		remove(path(temp));
+		return;
 	}
 	catch (const filesystem_error& ex){
+		std::system("cls");
 		cout << "You can only delete empty folders" << '\n';
 		_getch();
 	}
