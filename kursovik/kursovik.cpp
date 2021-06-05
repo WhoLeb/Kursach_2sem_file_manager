@@ -18,6 +18,7 @@ void create_dir(string&);
 void rm_file(string&);
 void rm_dir(string&);
 void my_rename(string&);
+void rm_this(string&, string&);
 
 std::wstring s2ws(const std::string& s)                              //перевод из string в wstring
 {
@@ -59,17 +60,16 @@ void working_function(vector<string>& vector) {
 
 	std::string prev_path;
 
-	int i = 1;
+	int arrow = 0;
 	int ch = 0;
-	try
-	{
+	try{
 		while (true) {
-			path p(my_path);
-			if (exists(p))
-			{
+			path paths(my_path);
+			string chosen_file;
+			if (exists(paths)){
 				//если файл, то предлагает его исполнить с дефолтной программой
-				if (is_regular_file(p)) { 
-					cout << p << " size is " << file_size(p) << '\n';
+				if (is_regular_file(paths)) { 
+					cout << paths << " size is " << file_size(paths) << '\n';
 					cout << "Do you want to open it? Y/N" << '\n';
 					char ans;
 					std::cin >> ans;
@@ -83,39 +83,38 @@ void working_function(vector<string>& vector) {
 					cout << "Press any key to continue";
 				}
 				//если директори€, то выводит ее + обработка ввода (стрелочки/кнопочки)
-				else if (is_directory(p))
+				else if (is_directory(paths))
 				{
-					cout << p << " is a directory containing:\n";
+					cout << paths << " is a directory containing:\n";
 
-					std::vector<path> v;
-					v.push_back("..");
+					std::vector<path> all_paths;
+					all_paths.push_back("..");
 
 					GetConsoleScreenBufferInfo(h, &csbi);                        //обновление буфера, чтобы помещалось в консоль
 					size_t rows = csbi.srWindow.Bottom - csbi.srWindow.Top + 1; 
-					int l = 0;
+					int line_in_console = 0;
 					
-					for (auto&& x : directory_iterator(p)) {             //заполнение вектора пут€ми
-						if (l < rows - 3)
-							v.push_back(x.path());
-						l++;
+					for (auto&& element : directory_iterator(paths)) {             //заполнение вектора пут€ми
+						if (line_in_console < rows - 3)
+							all_paths.push_back(element.path());
+						line_in_console++;
 					}
-					std::sort(v.begin(), v.end());
+					std::sort(all_paths.begin(), all_paths.end());
 
-					for (auto&& x : v) {
+					for (auto&& element : all_paths) {
 
-						if (i < 1)
-							i = v.size();											//перемещение "стрелочки"
-						else if (i > v.size())
-							i = 1;
-						if (i - 1 == (&x - &v[0])) {
+						arrow = ((arrow + all_paths.size()) % all_paths.size());
+
+						if (arrow == (&element - &all_paths[0])) {
 							SetConsoleTextAttribute(h, (FOREGROUND_BLUE << 4));		//"стрелочка"
-							cout << "    " << x.filename() << '\n';
+							cout << "    " << element.filename() << '\n';
+							chosen_file = element.filename().string();
 							SetConsoleTextAttribute(h, wOldColor);
 						}
 						else
-							cout << "    " << x.filename() << '\n';                 //вывод всех остальных, кроме стрелочки
+							cout << "    " << element.filename() << '\n';                 //вывод всех остальных, кроме стрелочки
 						if (ch == 13) {
-							if (i == 1) {
+							if (arrow == 0) {
 								if (my_path == "F:/")
 									continue;										//если выбран .. (предыдуща€ директори€) открывает ее, 
 								int start = my_path.find_last_of('/');				//удал€€ последний путь
@@ -125,30 +124,31 @@ void working_function(vector<string>& vector) {
 								break;
 							}
 							else {
-								my_path += v[i - 1].filename().string();            //иначе открывает директорию/файл
-								if (is_directory(v[i - 1]))
+								my_path += all_paths[arrow].filename().string();            //иначе открывает директорию/файл
+								if (is_directory(all_paths[arrow]))
 									my_path += "/";
-								i = 1;
+								arrow = 0;
 								break;
 							}
 						}
 
 					}
-					while (l < rows-4) {
+					while (line_in_console < rows - 4) {
 						std::cout << std::endl;										//дл€ вывода менюшки снизу
-						l++;
+						line_in_console++;
 					}
-					if (l >= rows - 5) {
+					if (line_in_console >= rows - 5) {
 						SetConsoleTextAttribute(h, (FOREGROUND_BLUE << 4));
-						cout << "1 - create file;     2 - create directory;    3 - delete file;      4 - delete empty directory;     5 - rename file/dir";
+						cout << "1 - create file;     2 - create directory;    3 - delete file;     \
+4 - delete empty directory;     5 - rename file/dir;    6 - delete highlighted file/empty dir";
 						SetConsoleTextAttribute(h, wOldColor);
 					}
 				}
 				else
-					cout << p << " exists, but is not a regular file or directory\n";
+					cout << paths << " exists, but is not a regular file or directory\n";
 			}
 			else {
-				cout << p << " does not exist\n";									//в случае отсутстви€ пути выдает "ошибку" и предлагает вернутьс€
+				cout << paths << " does not exist\n";									//в случае отсутстви€ пути выдает "ошибку" и предлагает вернутьс€
 				cout << "Return to root?";
 				char a;
 				cin >> a;
@@ -157,32 +157,44 @@ void working_function(vector<string>& vector) {
 			}
 			if (ch == 13) {
 				ch++;
-				system("cls");														//если был нажат ввод, собственно исполн€ет
+				std::system("cls");														//если был нажат ввод, собственно исполн€ет
 				continue;
 			}
-			ch = _getch();
-			if (ch == 224)															//управление вводом
+			ch = _getch();                                    //input handling
+			if (ch == 224)
 				ch = _getch();
-			if (ch == 72)
-				i--;
-			if (ch == 80)
-				i++;
-			if (ch == 49)
+			switch (ch){
+			case 72:
+				arrow--;
+				break;
+			case 80:
+				arrow++;
+				break;
+			case '1':
 				create_file(my_path);
-			if (ch == 50)
+				break;
+			case '2':
 				create_dir(my_path);
-			if (ch == 51)
+				break;
+			case '3':
 				rm_file(my_path);
-			if (ch == 52)
+				break;
+			case '4':
 				rm_dir(my_path);
-			if (ch == 53)
+				break;
+			case '5':
 				my_rename(my_path);
-			system("cls");
+				break;
+			case '6':
+				rm_this(my_path, chosen_file);
+				break;
+			}
+				
+			std::system("cls");
 		}
 	}
 
-	catch (const filesystem_error& ex)
-	{
+	catch (const filesystem_error& ex){
 		cout << ex.what() << '\n';								//дефолтна€ штука буста
 	}
 
@@ -233,8 +245,7 @@ void rm_dir(string& my_path) {
 		path p(res_name);
 		remove(p);
 	}
-	catch (const filesystem_error& ex)
-	{
+	catch (const filesystem_error& ex){
 		cout << "You can only delete empty folders" << '\n';
 		_getch();
 	}
@@ -253,4 +264,15 @@ void my_rename(string& my_path) {
 	string res_name2 = my_path + new_dir_name;
 	path p2(res_name2);
 	rename(p, p2);
+}
+
+void rm_this(string& my_path, string& chosen_path) {
+	try{
+		string temp = my_path + chosen_path;
+		remove(path(temp));
+	}
+	catch (const filesystem_error& ex){
+		cout << "You can only delete empty folders" << '\n';
+		_getch();
+	}
 }
