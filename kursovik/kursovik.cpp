@@ -1,4 +1,4 @@
-﻿
+﻿﻿
 #include <iostream>
 #include <cstdio>
 #include <vector>
@@ -19,7 +19,7 @@ void create_dir(string&);
 void rm_file(string&);
 void rm_dir(string&);
 void my_rename(string&);
-void rm_this(string&, string&); 
+void rm_this(string&, string&);
 
 void disclaimer();
 
@@ -50,7 +50,7 @@ int main(int argc, char* argv[])
 
 void working_function(vector<string>& vector) {
 
-	
+
 
 	std::string my_path = "C:/";
 
@@ -79,17 +79,17 @@ void working_function(vector<string>& vector) {
 					cout << "Do you want to open it? Y/N" << '\n';
 					char ans;
 					std::cin >> ans;
-					wstring tmp = s2ws(my_path);                          
-					LPCWSTR yot = tmp.c_str();							  
+					wstring tmp = s2ws(my_path);
+					LPCWSTR yot = tmp.c_str();
 					if (ans == 'Y' || ans == 'y') {
-						ShellExecute(0, 0, yot, 0, 0, SW_SHOW);			  
+						ShellExecute(0, 0, yot, 0, 0, SW_SHOW);
 					}
 					int start = my_path.find_last_of('/');
-					my_path.replace(start + 1, 100, "");				  
+					my_path.replace(start + 1, 100, "");
 					cout << "Press any arrow to continue";
 					_getch();
 				}
-				
+
 				else if (is_directory(paths))
 				{
 					cout << paths << " is a directory containing:\n";
@@ -141,8 +141,8 @@ void working_function(vector<string>& vector) {
 						if (input == 13) {
 							if (arrow == 0) {
 								if (my_path == "C:/")
-									continue;										
-								int start = my_path.find_last_of('/');				
+									continue;
+								int start = my_path.find_last_of('/');
 								if (!my_path[start + 1]) my_path.replace(start, 1, "");
 								start = my_path.find_last_of('/');
 								my_path.replace(start + 1, 100, "");
@@ -159,7 +159,7 @@ void working_function(vector<string>& vector) {
 
 					}
 					while (line_in_console < rows - 4) {
-						std::cout << std::endl;										
+						std::cout << std::endl;
 						line_in_console++;
 					}
 					if (line_in_console >= rows - 5) {
@@ -173,7 +173,7 @@ void working_function(vector<string>& vector) {
 					cout << paths << " exists, but is not a regular file or directory\n";
 			}
 			else {
-				cout << paths << " does not exist\n";									
+				cout << paths << " does not exist\n";
 				cout << "Return to root?";
 				char a;
 				cin >> a;
@@ -315,7 +315,7 @@ void disclaimer() {
 	WORD wOldColor;
 	CONSOLE_SCREEN_BUFFER_INFO csbi;
 	GetConsoleScreenBufferInfo(h, &csbi);
-	size_t middle = (csbi.srWindow.Right - csbi.srWindow.Left + 1)/2;
+	size_t middle = (csbi.srWindow.Right - csbi.srWindow.Left + 1) / 2;
 	for (int i = 0; i < middle - 5; i++)
 		cout << ' ';
 	wOldColor = csbi.wAttributes;
