@@ -93,7 +93,7 @@ void working_function(vector<string>& vector) {
 					all_paths.push_back("..");
 
 					GetConsoleScreenBufferInfo(h, &csbi);                        //обновление буфера, чтобы помещалось в консоль
-					size_t rows = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
+					int rows = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
 					int line_in_console = 0;
 					int first_shown = 0;
 
@@ -101,11 +101,18 @@ void working_function(vector<string>& vector) {
 						all_paths.push_back(element.path());
 					}
 					std::sort(all_paths.begin(), all_paths.end());
-
+					bool first = true;
+					shown_paths.push_back("..");
 					for (auto&& element : all_paths) {             //заполнение вектора путями
-						if (line_in_console < rows - 3 && first_shown <= highlighted)
+						if (first) {
+							first = false;
+							continue;
+						}
+						if (line_in_console < rows - 3 && first_shown >= highlighted - rows + 3) {
 							shown_paths.push_back(element);
-						line_in_console++;
+							line_in_console++;
+						}
+						first_shown++;
 					}
 					std::sort(shown_paths.begin(), shown_paths.end());
 
@@ -113,9 +120,9 @@ void working_function(vector<string>& vector) {
 
 					for (auto&& element : shown_paths) {
 
-						arrow = ((arrow + shown_paths.size()) % shown_paths.size());
 						highlighted = ((highlighted + all_paths.size()) % all_paths.size());
-
+						arrow = highlighted % shown_paths.size();
+						if (arrow != highlighted) arrow = shown_paths.size() - 1;
 						if (arrow == (&element - &shown_paths[0])) {
 							SetConsoleTextAttribute(h, (FOREGROUND_BLUE << 4));		//"стрелочка"
 							cout << "    " << element.filename() << '\n';
@@ -123,7 +130,8 @@ void working_function(vector<string>& vector) {
 							SetConsoleTextAttribute(h, wOldColor);
 						}
 						else
-							cout << "    " << element.filename() << '\n';                 //вывод всех остальных, кроме стрелочки
+							//cout << "    " << element.filename() << '\n';                 //вывод всех остальных, кроме стрелочки
+							printf("    %s\n", element.filename().string().c_str());
 						if (input == 13) {
 							if (arrow == 0) {
 								if (my_path == "C:/")
