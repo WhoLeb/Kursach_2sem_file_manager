@@ -1,5 +1,6 @@
 ﻿
 #include <iostream>
+#include <cstdio>
 #include <vector>
 #include <algorithm>
 #include <string>
@@ -112,13 +113,14 @@ void working_function(vector<string>& vector) {
 						arrow = ((arrow + all_paths.size()) % all_paths.size());
 
 						if (arrow == (&element - &all_paths[0])) {
-							SetConsoleTextAttribute(h, (FOREGROUND_BLUE << 4));		
+							SetConsoleTextAttribute(h, (FOREGROUND_BLUE << 4));
 							cout << "    " << element.filename() << '\n';
 							chosen_file = element.filename().string();
 							SetConsoleTextAttribute(h, wOldColor);
 						}
 						else
-							cout << "    " << element.filename() << '\n';                 
+							printf("     %s\n", element.filename().string().c_str());                 
+							//cout << "      " << element.filename() << endl;
 						if (ch == 13) {
 							if (arrow == 0) {
 								if (my_path == "C:/")
