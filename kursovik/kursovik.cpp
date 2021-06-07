@@ -66,13 +66,14 @@ void working_function(vector<string>& vector) {
 	std::string prev_path;
 
 	int arrow = 0;
-	int ch = 0;
+	int highlighted = 0;
+	int input = 0;
 	try {
 		while (true) {
 			path paths(my_path);
 			string chosen_file;
 			if (exists(paths)) {
-				
+				//если файл, то предлагает его исполнить с дефолтной программой
 				if (is_regular_file(paths)) {
 					cout << paths << " size is " << file_size(paths) << '\n';
 					cout << "Do you want to open it? Y/N" << '\n';
@@ -93,35 +94,51 @@ void working_function(vector<string>& vector) {
 				{
 					cout << paths << " is a directory containing:\n";
 
-					std::vector<path> all_paths;
+					std::vector<path> shown_paths, all_paths;
+					//shown_paths.push_back("..");
 					all_paths.push_back("..");
 
-					GetConsoleScreenBufferInfo(h, &csbi);                        
-					size_t rows = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
+					GetConsoleScreenBufferInfo(h, &csbi);                        //обновление буфера, чтобы помещалось в консоль
+					int rows = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
 					int line_in_console = 0;
-					all_paths.reserve(rows - 2);
+					int first_shown = 0;
 
-					for (auto&& element : directory_iterator(paths)) {             
-						if (line_in_console < rows - 3)
-							all_paths.push_back(element.path());
-						line_in_console++;
+					for (auto&& element : directory_iterator(paths)) {
+						all_paths.push_back(element.path());
 					}
 					std::sort(all_paths.begin(), all_paths.end());
+					bool first = true;
+					shown_paths.push_back("..");
+					for (auto&& element : all_paths) {             //заполнение вектора путями
+						if (first) {
+							first = false;
+							continue;
+						}
+						if (line_in_console < rows - 3 && first_shown >= highlighted - rows + 3) {
+							shown_paths.push_back(element);
+							line_in_console++;
+						}
+						first_shown++;
+					}
+					std::sort(shown_paths.begin(), shown_paths.end());
 
-					for (auto&& element : all_paths) {
+					first_shown = all_paths.size() - shown_paths.size() + highlighted;
 
-						arrow = ((arrow + all_paths.size()) % all_paths.size());
+					for (auto&& element : shown_paths) {
 
-						if (arrow == (&element - &all_paths[0])) {
-							SetConsoleTextAttribute(h, (FOREGROUND_BLUE << 4));
+						highlighted = ((highlighted + all_paths.size()) % all_paths.size());
+						arrow = highlighted % shown_paths.size();
+						if (arrow != highlighted) arrow = shown_paths.size() - 1;
+						if (arrow == (&element - &shown_paths[0])) {
+							SetConsoleTextAttribute(h, (FOREGROUND_BLUE << 4));		//"стрелочка"
 							cout << "    " << element.filename() << '\n';
 							chosen_file = element.filename().string();
 							SetConsoleTextAttribute(h, wOldColor);
 						}
 						else
-							printf("     %s\n", element.filename().string().c_str());                 
-							//cout << "      " << element.filename() << endl;
-						if (ch == 13) {
+							//cout << "    " << element.filename() << '\n';                 //вывод всех остальных, кроме стрелочки
+							printf("    %s\n", element.filename().string().c_str());
+						if (input == 13) {
 							if (arrow == 0) {
 								if (my_path == "C:/")
 									continue;										
@@ -132,8 +149,8 @@ void working_function(vector<string>& vector) {
 								break;
 							}
 							else {
-								my_path += all_paths[arrow].filename().string();           
-								if (is_directory(all_paths[arrow]))
+								my_path += shown_paths[arrow].filename().string();            //иначе открывает директорию/файл
+								if (is_directory(shown_paths[arrow]))
 									my_path += "/";
 								arrow = 0;
 								break;
@@ -163,20 +180,23 @@ void working_function(vector<string>& vector) {
 				if (a == 'Y' || a == 'y')
 					my_path = "C:/";
 			}
-			if (ch == 13) {
-				ch++;
-				std::system("cls");														
+			if (input == 13) {
+				input++;
+				std::system("cls");										//если был нажат ввод, собственно исполняет
+				highlighted = 0;
 				continue;
 			}
-			ch = _getch();                                    //input handling
-			if (ch == 224)
-				ch = _getch();
-			switch (ch) {
+			input = _getch();                                    //input handling
+			if (input == 224)
+				input = _getch();
+			switch (input) {
 			case 72:
 				arrow--;
+				highlighted--;
 				break;
 			case 80:
 				arrow++;
+				highlighted++;
 				break;
 			case '1':
 				create_file(my_path);
@@ -203,7 +223,7 @@ void working_function(vector<string>& vector) {
 	}
 
 	catch (const filesystem_error& ex) {
-		cout << ex.what() << '\n';								
+		cout << ex.what() << '\n';								//дефолтная штука буста
 	}
 
 	return;
