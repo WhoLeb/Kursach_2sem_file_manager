@@ -1,4 +1,4 @@
-
+п»ї
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -18,9 +18,11 @@ void create_dir(string&);
 void rm_file(string&);
 void rm_dir(string&);
 void my_rename(string&);
-void rm_this(string&, string&);
+void rm_this(string&, string&); 
 
-std::wstring s2ws(const std::string& s)                              //перевод из string в wstring
+void disclaimer();
+
+std::wstring s2ws(const std::string& s)                              //ГЇГҐГ°ГҐГўГ®Г¤ ГЁГ§ string Гў wstring
 {
 	int len;
 	int slength = (int)s.length() + 1;
@@ -34,6 +36,8 @@ std::wstring s2ws(const std::string& s)                              //перевод и
 
 int main(int argc, char* argv[])
 {
+	setlocale(0, "");
+	disclaimer();
 
 	vector<string> v;
 
@@ -45,7 +49,7 @@ int main(int argc, char* argv[])
 
 void working_function(vector<string>& vector) {
 
-	setlocale(0, "");
+	
 
 	std::string my_path = "C:/";
 
@@ -62,27 +66,28 @@ void working_function(vector<string>& vector) {
 
 	int arrow = 0;
 	int ch = 0;
-	try{
+	try {
 		while (true) {
 			path paths(my_path);
 			string chosen_file;
-			if (exists(paths)){
-				//если файл, то предлагает его исполнить с дефолтной программой
-				if (is_regular_file(paths)) { 
+			if (exists(paths)) {
+				
+				if (is_regular_file(paths)) {
 					cout << paths << " size is " << file_size(paths) << '\n';
 					cout << "Do you want to open it? Y/N" << '\n';
 					char ans;
 					std::cin >> ans;
-					wstring tmp = s2ws(my_path);                          //для того, чтобы можно было открывать файлы
-					LPCWSTR yot = tmp.c_str();							  //с русскими названиями, скобочками и тд
+					wstring tmp = s2ws(my_path);                          
+					LPCWSTR yot = tmp.c_str();							  
 					if (ans == 'Y' || ans == 'y') {
-						ShellExecute(0, 0, yot, 0, 0, SW_SHOW);			  //исполнение файла
+						ShellExecute(0, 0, yot, 0, 0, SW_SHOW);			  
 					}
 					int start = my_path.find_last_of('/');
-					my_path.replace(start + 1, 100, "");				  //возвращение к директории
-					cout << "Press any key to continue";
+					my_path.replace(start + 1, 100, "");				  
+					cout << "Press any arrow to continue";
+					_getch();
 				}
-				//если директория, то выводит ее + обработка ввода (стрелочки/кнопочки)
+				
 				else if (is_directory(paths))
 				{
 					cout << paths << " is a directory containing:\n";
@@ -90,11 +95,12 @@ void working_function(vector<string>& vector) {
 					std::vector<path> all_paths;
 					all_paths.push_back("..");
 
-					GetConsoleScreenBufferInfo(h, &csbi);                        //обновление буфера, чтобы помещалось в консоль
-					size_t rows = csbi.srWindow.Bottom - csbi.srWindow.Top + 1; 
+					GetConsoleScreenBufferInfo(h, &csbi);                        
+					size_t rows = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
 					int line_in_console = 0;
-					
-					for (auto&& element : directory_iterator(paths)) {             //заполнение вектора путями
+					all_paths.reserve(rows - 2);
+
+					for (auto&& element : directory_iterator(paths)) {             
 						if (line_in_console < rows - 3)
 							all_paths.push_back(element.path());
 						line_in_console++;
@@ -106,25 +112,25 @@ void working_function(vector<string>& vector) {
 						arrow = ((arrow + all_paths.size()) % all_paths.size());
 
 						if (arrow == (&element - &all_paths[0])) {
-							SetConsoleTextAttribute(h, (FOREGROUND_BLUE << 4));		//"стрелочка"
+							SetConsoleTextAttribute(h, (FOREGROUND_BLUE << 4));		
 							cout << "    " << element.filename() << '\n';
 							chosen_file = element.filename().string();
 							SetConsoleTextAttribute(h, wOldColor);
 						}
 						else
-							cout << "    " << element.filename() << '\n';                 //вывод всех остальных, кроме стрелочки
+							cout << "    " << element.filename() << '\n';                 
 						if (ch == 13) {
 							if (arrow == 0) {
 								if (my_path == "C:/")
-									continue;										//если выбран .. (предыдущая директория) открывает ее, 
-								int start = my_path.find_last_of('/');				//удаляя последний путь
+									continue;										
+								int start = my_path.find_last_of('/');				
 								if (!my_path[start + 1]) my_path.replace(start, 1, "");
 								start = my_path.find_last_of('/');
 								my_path.replace(start + 1, 100, "");
 								break;
 							}
 							else {
-								my_path += all_paths[arrow].filename().string();            //иначе открывает директорию/файл
+								my_path += all_paths[arrow].filename().string();           
 								if (is_directory(all_paths[arrow]))
 									my_path += "/";
 								arrow = 0;
@@ -134,7 +140,7 @@ void working_function(vector<string>& vector) {
 
 					}
 					while (line_in_console < rows - 4) {
-						std::cout << std::endl;										//для вывода менюшки снизу
+						std::cout << std::endl;										
 						line_in_console++;
 					}
 					if (line_in_console >= rows - 5) {
@@ -148,7 +154,7 @@ void working_function(vector<string>& vector) {
 					cout << paths << " exists, but is not a regular file or directory\n";
 			}
 			else {
-				cout << paths << " does not exist\n";									//в случае отсутствия пути выдает "ошибку" и предлагает вернуться
+				cout << paths << " does not exist\n";									
 				cout << "Return to root?";
 				char a;
 				cin >> a;
@@ -157,13 +163,13 @@ void working_function(vector<string>& vector) {
 			}
 			if (ch == 13) {
 				ch++;
-				std::system("cls");														//если был нажат ввод, собственно исполняет
+				std::system("cls");														
 				continue;
 			}
 			ch = _getch();                                    //input handling
 			if (ch == 224)
 				ch = _getch();
-			switch (ch){
+			switch (ch) {
 			case 72:
 				arrow--;
 				break;
@@ -189,18 +195,18 @@ void working_function(vector<string>& vector) {
 				rm_this(my_path, chosen_file);
 				break;
 			}
-				
+
 			std::system("cls");
 		}
 	}
 
-	catch (const filesystem_error& ex){
-		cout << ex.what() << '\n';								//дефолтная штука буста
+	catch (const filesystem_error& ex) {
+		cout << ex.what() << '\n';								
 	}
 
 	return;
 }
-//дальше функции названием исчерпываются
+
 void create_file(string& my_path) {
 	system("cls");
 	cout << "Type in the name of the file:" << endl;
@@ -246,7 +252,7 @@ void rm_dir(string& my_path) {
 		path p(res_name);
 		remove(p);
 	}
-	catch (const filesystem_error& ex){
+	catch (const filesystem_error& ex) {
 		std::system("cls");
 		cout << "You can only delete empty folders" << '\n';
 		_getch();
@@ -269,14 +275,53 @@ void my_rename(string& my_path) {
 }
 
 void rm_this(string& my_path, string& chosen_path) {
-	try{
+	try {
 		string temp = my_path + chosen_path;
 		remove(path(temp));
 		return;
 	}
-	catch (const filesystem_error& ex){
+	catch (const filesystem_error& ex) {
 		std::system("cls");
 		cout << "You can only delete empty folders" << '\n';
 		_getch();
 	}
+}
+
+
+void disclaimer() {
+	HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
+	WORD wOldColor;
+	CONSOLE_SCREEN_BUFFER_INFO csbi;
+	GetConsoleScreenBufferInfo(h, &csbi);
+	size_t middle = (csbi.srWindow.Right - csbi.srWindow.Left + 1)/2;
+	for (int i = 0; i < middle - 5; i++)
+		cout << ' ';
+	wOldColor = csbi.wAttributes;
+
+	SetConsoleTextAttribute(h, (FOREGROUND_RED) << 4);
+	std::cout << "Р’РќРРњРђРќРР•!!!\n";
+	SetConsoleTextAttribute(h, wOldColor);
+	std::cout << "		Р—Р°РїСѓСЃРєР°СЏ СЌС‚Сѓ РїСЂРѕРіСЂР°РјРјСѓ РІС‹ РїРѕР»РЅРѕСЃС‚СЊСЋ СЃРѕРіР»Р°СЃРЅС‹, СЃ С‚РµРј, \
+С‡С‚Рѕ РµСЃР»Рё РєР°РєРѕР№-Р»РёР±Рѕ С„Р°Р№Р» Р±СѓРґРµС‚ СЃР»СѓС‡Р°Р№РЅРѕ\nР±РµР·РІРѕР·РІСЂР°С‚РЅРѕ СѓРґР°Р»РµРЅ РІР°С€РёРјРё РЅРµРѕСЃС‚РѕСЂРѕР¶РЅС‹РјРё РґРµР№СЃС‚РІРёСЏРјРё \
+РІСЃСЋ РІРёРЅСѓ РІС‹ Р±РµСЂРµС‚Рµ РЅР° СЃРµР±СЏ, \nРІ СЃРІСЏР·Рё СЃ СЌС‚РёРј СЂРµРєРѕРјРјРµРЅРґСѓРµС‚СЃСЏ РїСЂРѕС‡С‚РµРЅРёРµ РїСЂРµРґРѕСЃС‚РµСЂРµР¶РµРЅРёСЏ Рё РїСЂР°РІРёР» РёСЃРїРѕР»СЊР·РѕРІР°РЅРёСЏ!\
+\n\n\n 1.Р’СЃРµ С„Р°Р№Р»С‹ СѓРґР°Р»СЏСЋС‚СЃСЏ Р±РµР·РІРѕР·РІСЂР°С‚РЅРѕ (РЅРµ РІ РєРѕСЂР·РёРЅСѓ Р»РµС‚СЏС‚)!!!\n\
+2. РЎРѕР·РґР°РЅРёРµ/СѓРґР°Р»РµРЅРёРµ С„Р°Р№Р»РѕРІ РІРѕР·РјРѕР¶РЅРѕ С‚РѕР»СЊРєРѕ Р±РµР· РїСЂРѕР±РµР»РѕРІ.\n\
+3. Р’СЃРµ С„Р°Р№Р»С‹ РѕС‚РєСЂС‹РІР°СЋС‚СЃСЏ РґРµС„РѕР»С‚РЅС‹РјРё РїСЂРёР»РѕР¶РµРЅРёСЏРјРё, С‡С‚Рѕ РјРѕР¶РµС‚ Р·Р°РЅСЏС‚СЊ РІСЂРµРјСЏ + РїРѕСЃС‚РѕСЏРЅРЅРѕ РіСЂСѓР·СЏС‚СЃСЏ СЃРёРјРІРѕР»С‹ (РІ vs)\n\
+4. РџСЂРё Р±С‹СЃС‚СЂРѕРј СѓРґР°Р»РµРЅРёРё РЅРµ Р±СѓРґРµС‚ РІРѕРїСЂРѕСЃР° СѓРґР°Р»РёС‚СЊ Р»Рё С„Р°Р№Р», РѕРЅ РїСЂРѕСЃС‚Рѕ Р±СѓРґРµС‚ СѓРґР°Р»РµРЅ РјРѕРјРµРЅС‚Р°Р»СЊРЅРѕ.\n\n\n\n\n";
+	for (int i = 0; i < middle - 5; i++)
+		cout << ' ';
+	SetConsoleTextAttribute(h, (FOREGROUND_RED) << 4);
+	std::cout << "WARNING!!!\n";
+	SetConsoleTextAttribute(h, wOldColor);
+	std::cout << "		By launching this program you agree that in case of accidental removal of any file it is\n\
+completely your fault and there is no way to restore it. So it is highly recommended to first read the rules\n\n\n\n\
+1. All files are removed forever(they don't go to bin)\n\
+2. Creation/deletion of entities is only possible without spaces.\n\
+3. All files are opened by the default app so it may take up some time before it's loaded.\n\
+4. If deleting quickly there will not be any confirmation message so it will be deleted instanteniously.\n\n\n\n\n\n\n\n\n\
+РќР°Р¶РјРёС‚Рµ Р»СЋР±С‹Рµ РєРЅРѕРїРєРё 2 СЂР°Р·Р° (РёР»Рё СЃС‚СЂРµР»РѕС‡РєСѓ 1 СЂР°Р·).\n\
+Press any buttons twice (or arrow once).";
+
+	_getch();
+	_getch();
 }
