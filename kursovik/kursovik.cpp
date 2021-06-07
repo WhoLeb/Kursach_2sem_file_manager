@@ -318,7 +318,7 @@ completely your fault and there is no way to restore it. So it is highly recomme
 1. All files are removed forever(they don't go to bin)\n\
 2. Creation/deletion of entities is only possible without spaces.\n\
 3. All files are opened by the default app so it may take up some time before it's loaded.\n\
-4. If deleting quickly there will not be any confirmation message so it will be deleted instanteniously.\n\n\n\n\n\n\n\n\n\
+4. If deleting quickly there will not be any confirmation message so it will be deleted instanteniously.\n\n\n\n\n\n\
 Нажмите любые кнопки 2 раза (или стрелочку 1 раз).\n\
 Press any buttons twice (or arrow once).";
 
